@@ -1,4 +1,4 @@
-const MODEL_NAME = "gemini-2.0-flash";
+const MODEL_NAME = "gemini-3.8-flash";
 const WHATSAPP_NUMBER = "970567375571";
 
 const PRODUCTS_AND_POLICY = `
@@ -21,116 +21,161 @@ const SYSTEM_PROMPT = `
    - الاسم الكامل
    - رقم الهاتف
    - العنوان الكامل (المدينة / الحي)
-5. بمجرد اكتمال البيانات الأربع، اعرض له ملخص الطلب بهذا الشكل الثابت:
+5. بمجرد توفر البيانات الأربع، أخرج "بطاقة أوردر جاهز للتنفيذ" واضحة ومنظمة تحتوي على البنود الأربعة ورقم واتساب التنفيذ (${WHATSAPP_NUMBER}) وسياسة التوصيل والدفع دون اختراع أسعار.
+`;
 
-✅ بطاقة أوردر جاهز للتنفيذ:
-- العميل: [الاسم]
-- الهاتف: [الرقم]
-- العنوان: [العنوان]
-- الطلب: [الصنف والكمية]
-- الإجمالي المتوقع: [يُحدّد عند تأكيد السعر والتوصيل]
+function buildLocalFallbackReply(message) {
+  const text = (message || "").trim();
+  const lower = text.toLowerCase();
 
-قائمة المنتجات والسياسات:
-${PRODUCTS_AND_POLICY}
-`.trim();
+  const hasCoffee = text.includes("قهوة") || lower.includes("coffee");
+  const hasDates = text.includes("تمر") || text.includes("تمور") || lower.includes("dates");
+  const hasWatches = text.includes("ساعة") || text.includes("ساعات") || lower.includes("watch");
 
-function jsonResponse(statusCode, payload) {
-  return {
-    statusCode,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Methods": "POST, OPTIONS"
-    },
-    body: JSON.stringify(payload)
-  };
+  const hasPhone = /(\+?\d[\d\s\-]{6,15}\d)/.test(text);
+  const hasAddress = /(المدينة|الحي|شارع|منطقة|عنوان|غزة|خانيونس|خان يونس|رفح|رام الله|نابلس|الخليل|القدس|عمان|دبي|الرياض)/.test(text);
+  const hasName = /(اسمي|الاسم|أنا|انا)\s+[\u0600-\u06FFa-zA-Z]{2,}/.test(text);
+
+  if ((hasCoffee || hasDates || hasWatches) && (hasPhone || hasAddress || hasName)) {
+    const items = [];
+    if (hasCoffee) items.push("قهوة مختارة");
+    if (hasDates) items.push("تمور فاخرة");
+    if (hasWatches) items.push("ساعات");
+
+    return [
+      "بطاقة أوردر جاهز للتنفيذ — ai provider",
+      "• الصنف والكمية: " + (items.length ? items.join("، ") : "حسب المحدد في الرسالة") + " (الوزن/الموديل والسعر يُعتمدان عند تأكيد الطلب)",
+      "• الاسم الكامل: " + (hasName ? "مذكور في الرسالة" : "يُرجى تأكيد الاسم الكامل"),
+      "• رقم الهاتف: " + (hasPhone ? text.match(/(\+?\d[\d\s\-]{6,15}\d)/)[0].trim() : "يُرجى تأكيد رقم الهاتف"),
+      "• العنوان الكامل: " + (hasAddress ? "مذكور في الرسالة" : "يُرجى تأكيد المدينة والحي"),
+      "• التوصيل والدفع: يتم التنسيق وتأكيد المدة والتكلفة وآلية الدفع عند اعتماد الأوردر.",
+      "• واتساب التنفيذ: " + WHATSAPP_NUMBER
+    ].join("\n");
+  }
+
+  if (hasCoffee) {
+    return "متوفر لدينا: قهوة مختارة بنكهة غنية وقوام متوازن مناسب للتحضير اليومي والضيافة (السعر والوزن يُعتمدان عند تأكيد الطلب). هل تود طلبها؟ إذا رغبت بالشراء، أرسل: الصنف والكمية، الاسم الكامل، رقم الهاتف، والعنوان الكامل.";
+  }
+
+  if (hasDates) {
+    return "متوفر لدينا: تمور فاخرة بحبات مختارة بعناية وجودة عالية مناسبة للضيافة والاستهلاك اليومي (السعر والوزن يُعتمدان عند تأكيد الطلب). لإتمام الأوردر أرسل: الصنف والكمية، الاسم الكامل، رقم الهاتف، والعنوان الكامل.";
+  }
+
+  if (hasWatches) {
+    return "متوفر لدينا: ساعات بتصميم عملي أنيق مناسب للاستخدام اليومي والإهداء (السعر والموديل يُعتمدان عند تأكيد الطلب). لإتمام الأوردر أرسل: الصنف والكمية، الاسم الكامل، رقم الهاتف، والعنوان الكامل.";
+  }
+
+  return "أهلاً بك في ai provider! نوفر (قهوة مختارة، تمور فاخرة، ساعات)، ويتم تأكيد السعر والوزن/الموديل والتوصيل والدفع عند إتمام الطلب. كيف يمكنني مساعدتك، أو ما البيانات الأربع (الصنف والكمية، الاسم الكامل، رقم الهاتف، العنوان الكامل) لأوردرك؟";
 }
 
-exports.handler = async (event) => {
+exports.handler = async function (event) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json; charset=utf-8"
+  };
+
   if (event.httpMethod === "OPTIONS") {
-    return jsonResponse(200, { ok: true });
+    return { statusCode: 200, headers, body: "" };
   }
 
   if (event.httpMethod !== "POST") {
-    return jsonResponse(405, { error: "Method Not Allowed" });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return jsonResponse(500, {
-      error: "GEMINI_API_KEY is not configured in environment variables."
-    });
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: "Method Not Allowed" })
+    };
   }
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const message = typeof body.message === "string" ? body.message.trim() : "";
-    const history = Array.isArray(body.history) ? body.history : [];
+    const message = (body.message || "").trim();
+    const useGemini = Boolean(body.useGemini);
 
     if (!message) {
-      return jsonResponse(400, { error: "Message is required." });
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: "الرسالة مطلوبة." })
+      };
     }
 
-    const sanitizedHistory = history
-      .filter(
-        (item) =>
-          item &&
-          (item.role === "user" || item.role === "model") &&
-          Array.isArray(item.parts) &&
-          item.parts.length > 0 &&
-          typeof item.parts[0]?.text === "string"
-      )
-      .slice(-12)
-      .map((item) => ({
-        role: item.role,
-        parts: [{ text: item.parts[0].text.slice(0, 2000) }]
-      }));
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    const contents = [
-      ...sanitizedHistory,
-      {
-        role: "user",
-        parts: [{ text: message }]
+    if (!useGemini || !apiKey) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          reply: buildLocalFallbackReply(message),
+          model: MODEL_NAME,
+          source: "local-zero-quota"
+        })
+      };
+    }
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+    const payload = {
+      systemInstruction: {
+        parts: [{ text: `${SYSTEM_PROMPT}\n\nقائمة المنتجات والسياسات:\n${PRODUCTS_AND_POLICY}` }]
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: message }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 450
       }
-    ];
+    };
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-    const geminiRes = await fetch(url, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: SYSTEM_PROMPT }]
-        },
-        contents,
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 500
-        }
-      })
+      body: JSON.stringify(payload)
     });
 
-    const data = await geminiRes.json();
+    const data = await response.json();
 
-    if (!geminiRes.ok) {
-      return jsonResponse(geminiRes.status, {
-        error: data?.error?.message || "Failed to fetch response from Gemini API."
-      });
+    if (!response.ok) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          reply: buildLocalFallbackReply(message),
+          model: MODEL_NAME,
+          source: "fallback-after-api-error",
+          apiError: data?.error?.message || "Gemini API error"
+        })
+      };
     }
 
-    const reply =
+    const replyText =
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
-      "عذراً، لم أتمكن من صياغة الرد الآن. حاول مرة أخرى.";
+      buildLocalFallbackReply(message);
 
-    return jsonResponse(200, {
-      reply,
-      whatsappNumber: WHATSAPP_NUMBER
-    });
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        reply: replyText,
+        model: MODEL_NAME,
+        source: "gemini"
+      })
+    };
   } catch (err) {
-    return jsonResponse(500, {
-      error: err?.message || "Unexpected server error."
-    });
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        reply: buildLocalFallbackReply(""),
+        model: MODEL_NAME,
+        source: "fallback-exception"
+      })
+    };
   }
 };
