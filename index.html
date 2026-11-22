@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>وكيل الأوردرات الذكي | ai provider</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-dark: #16a34a;
+      --user-bg: #2563eb;
+      --bot-bg: #334155;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 85vh;
+      max-height: 760px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .header {
+      padding: 14px 16px;
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .header-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .badge {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .toolbar {
+      padding: 8px 14px;
+      background: #172033;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .local-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .btn-reset {
+      background: transparent;
+      color: #fca5a5;
+      border: 1px solid rgba(252, 165, 165, 0.35);
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .btn-reset:hover {
+      background: rgba(252, 165, 165, 0.12);
+    }
+
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 88%;
+      padding: 11px 14px;
+      border-radius: 14px;
+      line-height: 1.55;
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg.user {
+      align-self: flex-start;
+      background: var(--user-bg);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.bot {
+      align-self: flex-end;
+      background: var(--bot-bg);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.system {
+      align-self: center;
+      background: rgba(148, 163, 184, 0.14);
+      color: #e2e8f0;
+      font-size: 0.82rem;
+      text-align: center;
+      max-width: 95%;
+    }
+
+    .wa-btn {
+      display: inline-block;
+      margin-top: 10px;
+      background: var(--accent);
+      color: #052e16;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    .wa-btn:hover {
+      background: var(--accent-dark);
+      color: #fff;
+    }
+
+    .input-area {
+      padding: 12px;
+      background: #111827;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-area input {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+
+    .input-area input:focus {
+      border-color: var(--user-bg);
+    }
+
+    .input-area button {
+      background: var(--user-bg);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0 18px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    .input-area button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="header">
+      <div>
+        <div class="header-title">وكيل الأوردرات الذكي — ai provider</div>
+        <div class="header-sub">قهوة مختارة • تمور فاخرة • ساعات</div>
+      </div>
+      <div id="quotaBadge" class="badge">المتبقي: 3 / 3</div>
+    </div>
+
+    <div class="toolbar">
+      <label class="local-toggle">
+        <input type="checkbox" id="localDirectTest" />
+        <span>اختبار محلي مباشر بمفتاح Gemini</span>
+      </label>
+      <button type="button" id="resetQuotaBtn" class="btn-reset">تصفير العداد</button>
+    </div>
+
+    <div id="chatBox" class="chat-box">
+      <div class="msg bot">أهلاً بك في ai provider! يمكنني مساعدتك في اختيار (القهوة، التمور، الساعات) وتجهيز بطاقة أوردر جاهزة للتنفيذ. كيف أساعدك اليوم؟</div>
+    </div>
+
+    <form id="chatForm" class="input-area">
+      <input
+        type="text"
+        id="userInput"
+        placeholder="اكتب سؤالك أو طلبك هنا..."
+        autocomplete="off"
+        required
+      />
+      <button type="submit" id="sendBtn">إرسال</button>
+    </form>
+  </div>
+
+  <script>
+    // ========================================================
+    // إعدادات الواجهة
+    // ========================================================
+    const MAX_FREE_QUESTIONS = 3;
+    const WHATSAPP_NUMBER = "970567375571";
+    const ACTIVATION_CODE = "AIPR-PRO";
+    const MODEL_NAME = "gemini-2.0-flash";
+
+    // ضع مفتاحك هنا فقط عند تفعيل خيار "اختبار محلي مباشر بمفتاح Gemini" على جهازك
+    // ولا ترفع المفتاح نصياً إلى مستودع Git العام
+    const LOCAL_TEST_API_KEY = "";
+
+    const PRODUCTS_AND_POLICY = `
+- الصنف 1: قهوة مختارة — السعر: حسب الاختيار والوزن المعتمد عند تأكيد الطلب — الميزة: نكهة غنية وقوام متوازن مناسب للتحضير اليومي والضيافة.
+- الصنف 2: تمور فاخرة — السعر: حسب الصنف والوزن المعتمد عند تأكيد الطلب — الميزة: حبات مختارة بعناية وجودة عالية مناسبة للضيافة والاستهلاك اليومي.
+- الصنف 3: ساعات — السعر: حسب الموديل المعتمد عند تأكيد الطلب — الميزة: تصميم عملي أنيق مناسب للاستخدام اليومي والإهداء.
+- التوصيل: يتم التنسيق وتأكيد مدة وتكلفة التوصيل حسب العنوان والمنطقة عند إتمام الطلب.
+- الدفع: يتم تأكيد آلية الدفع المناسبة مع العميل عند اعتماد الأوردر.
+`;
+
+    const LOCAL_SYSTEM_PROMPT = `
+أنت "وكيل الأوردرات الذكي" التابع لـ ai provider. مهمتك مساعدة الزبون في اختيار المنتج المناسب وإتمام أوردر شراء جاهز للتنفيذ.
+
+القواعد الصارمة:
+1. التزم فقط بالمعلومات الواردة في "قائمة المنتجات والسياسات" أدناه. يُمنع منعاً باتاً اختراع أي أسعار محددة أو أوزان أو خصومات أو مواعيد توصيل غير مذكورة في القائمة.
+2. إذا سأل الزبون عن منتج أو تفصيل غير موجود في القائمة، وضّح بلطف أن هذا التفصيل يُؤكَّد مع فريق المبيعات ولا تخمّن من عندك.
+3. اجعل ردودك مختصرة، ودودة، ومباشرة، ومناسبة للقراءة السريعة على الجوال.
+4. عند رغبة الزبون في الشراء، اجمع منه بلطف البيانات الأربع المطلوبة لإتمام الأوردر:
+   - الصنف والكمية (أو الموديل/الوزن المطلوب)
+   - الاسم الكامل
+   - رقم الهاتف
+   - العنوان الكامل (المدينة / الحي)
+5. بمجرد اكتمال البيانات الأربع، اعرض له ملخص الطلب بهذا الشكل الثابت:
+
+✅ بطاقة أوردر جاهز للتنفيذ:
+- العميل: [الاسم]
+- الهاتف: [الرقم]
+- العنوان: [العنوان]
+- الطلب: [الصنف والكمية]
+- الإجمالي المتوقع: [يُحدّد عند تأكيد السعر والتوصيل]
+
+قائمة المنتجات والسياسات:
+${PRODUCTS_AND_POLICY}
+`.trim();
+
+    const COUNT_KEY = "aipr_order_count_v2";
+    const UNLOCK_KEY = "aipr_order_unlocked_v2";
+
+    let usedQuestions = parseInt(localStorage.getItem(COUNT_KEY) || "0", 10);
+    let isUnlocked = localStorage.getItem(UNLOCK_KEY) === "true";
+    const conversationHistory = [];
+
+    const chatBox = document.getElementById("chatBox");
+    const chatForm = document.getElementById("chatForm");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const quotaBadge = document.getElementById("quotaBadge");
+    const resetQuotaBtn = document.getElementById("resetQuotaBtn");
+    const localDirectTest = document.getElementById("localDirectTest");
+
+    function updateBadge() {
+      if (isUnlocked) {
+        quotaBadge.textContent = "مفتوح (مفعل)";
+        return;
+      }
+      const remaining = Math.max(0, MAX_FREE_QUESTIONS - usedQuestions);
+      quotaBadge.textContent = `المتبقي: ${remaining} / ${MAX_FREE_QUESTIONS}`;
+    }
+
+    function appendMessage(text, role = "bot", waLink = null) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.textContent = text;
+
+      if (waLink) {
+        const a = document.createElement("a");
+        a.href = waLink;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.className = "wa-btn";
+        a.textContent = "التواصل عبر واتساب ai provider";
+        div.appendChild(document.createElement("br"));
+        div.appendChild(a);
+      }
+
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function getWhatsAppLimitLink() {
+      const msg = encodeURIComponent("مرحباً ai provider، جرّبت وكيل الأوردرات وأرغب بتفعيله أو الحصول على رمز التفعيل.");
+      return `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+    }
+
+    async function sendToLocalDirectGemini(messageText) {
+      if (!LOCAL_TEST_API_KEY.trim()) {
+        throw new Error("ضع مفتاح Gemini داخل LOCAL_TEST_API_KEY في index.html أولاً للاختبار المحلي المباشر.");
+      }
+
+      const nextContents = [
+        ...conversationHistory,
+        { role: "user", parts: [{ text: messageText }] }
+      ];
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${encodeURIComponent(LOCAL_TEST_API_KEY.trim())}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: LOCAL_SYSTEM_PROMPT }] },
+          contents: nextContents,
+          generationConfig: { temperature: 0.4, maxOutputTokens: 500 }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error?.message || `HTTP ${res.status}`);
+      }
+
+      return (
+        data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+        "لم يظهر نص في رد النموذج."
+      );
+    }
+
+    async function sendToNetlifyFunction(messageText) {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: messageText,
+          history: conversationHistory
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || `HTTP ${res.status}`);
+      }
+
+      return data.reply || "لم يظهر نص في رد الخادم.";
+    }
+
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      userInput.value = "";
+
+      if (text === ACTIVATION_CODE) {
+        isUnlocked = true;
+        localStorage.setItem(UNLOCK_KEY, "true");
+        updateBadge();
+        appendMessage(text, "user");
+        appendMessage("✅ تم تفعيل النسخة الكاملة بنجاح!", "system");
+        return;
+      }
+
+      if (!isUnlocked && usedQuestions >= MAX_FREE_QUESTIONS) {
+        appendMessage(text, "user");
+        appendMessage(
+          "انتهت محاولات التجربة المجانية (3 أسئلة). لتفعيل وكيل الأوردرات أو طلب رمز التفعيل تواصل معنا عبر واتساب:",
+          "bot",
+          getWhatsAppLimitLink()
+        );
+        return;
+      }
+
+      appendMessage(text, "user");
+      usedQuestions += 1;
+      localStorage.setItem(COUNT_KEY, String(usedQuestions));
+      updateBadge();
+
+      sendBtn.disabled = true;
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "msg bot";
+      loadingDiv.textContent = "جاري تجهيز الرد...";
+      chatBox.appendChild(loadingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const reply = localDirectTest.checked
+          ? await sendToLocalDirectGemini(text)
+          : await sendToNetlifyFunction(text);
+
+        conversationHistory.push(
+          { role: "user", parts: [{ text }] },
+          { role: "model", parts: [{ text: reply }] }
+        );
+
+        loadingDiv.remove();
+        appendMessage(reply, "bot");
+
+        if (!isUnlocked && usedQuestions >= MAX_FREE_QUESTIONS) {
+          appendMessage(
+            "هذه كانت آخر رسالة من التجربة المجانية (3 أسئلة). للتفعيل أو طلب رمز التفعيل تواصل معنا عبر واتساب:",
+            "system",
+            getWhatsAppLimitLink()
+          );
+        }
+      } catch (err) {
+        loadingDiv.remove();
+        appendMessage(`تعذر إتمام الطلب:\n${err.message}`, "bot");
+      } finally {
+        sendBtn.disabled = false;
+        userInput.focus();
+      }
+    });
+
+    resetQuotaBtn.addEventListener("click", () => {
+      usedQuestions = 0;
+      isUnlocked = false;
+      localStorage.removeItem(COUNT_KEY);
+      localStorage.removeItem(UNLOCK_KEY);
+      conversationHistory.length = 0;
+      updateBadge();
+      appendMessage("🔄 تم تصفير العداد بنجاح.", "system");
+    });
+
+    updateBadge();
+  </script>
+</body>
+</html>
